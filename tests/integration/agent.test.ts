@@ -13,6 +13,11 @@ import * as fs from 'fs/promises';
 import * as path from 'path';
 import * as os from 'os';
 
+// Mock console methods to reduce noise
+const originalConsoleLog = console.log;
+const originalConsoleWarn = console.warn;
+const originalConsoleError = console.error;
+
 // Mock LLM Router for testing
 class MockLLMRouter extends LLMRouter {
   constructor() {
@@ -66,11 +71,20 @@ class MockLLMRouter extends LLMRouter {
 
 describe('Agent Integration Tests', () => {
   let orchestrator: WorkflowOrchestrator;
-  let testDir: string;
+  let testDir: string; 
   let mockLLMRouter: MockLLMRouter;
   let stateManager: StateManager;
+  let originalDir: string;
 
   beforeEach(async () => {
+    // Store original directory
+    originalDir = process.cwd();
+    
+    // Suppress console output during tests
+    console.log = jest.fn();
+    console.warn = jest.fn();
+    console.error = jest.fn();
+    
     // Create temporary test directory
     testDir = await fs.mkdtemp(path.join(os.tmpdir(), 'spark-agent-test-'));
     process.chdir(testDir);
@@ -92,11 +106,49 @@ describe('Agent Integration Tests', () => {
   });
 
   afterEach(async () => {
-    // Cleanup test directory
-    try {
-      await fs.rm(testDir, { recursive: true, force: true });
-    } catch (error) {
-      // Ignore cleanup errors
+    // Restore console methods
+    console.log = originalConsoleLog;
+    console.warn = originalConsoleWarn;
+    console.error = originalConsoleError;
+    
+    // Restore working directory
+    process.chdir(originalDir);
+    
+    // Clean up orchestrator resources
+    if (orchestrator) {
+      // Force cleanup of any pending operations
+      orchestrator = null as any;
+    }
+    
+    // Clean up state manager
+    if (stateManager) {
+      stateManager = null as any;
+    }
+    
+    // Clean up mock router
+    if (mockLLMRouter) {
+      mockLLMRouter = null as any;
+    }
+    
+    // Cleanup test directory with retry
+    if (testDir) {
+      try {
+        await fs.rm(testDir, { recursive: true, force: true });
+      } catch (error) {
+        // Retry cleanup after short delay
+        await new Promise(resolve => setTimeout(resolve, 100));
+        try {
+          await fs.rm(testDir, { recursive: true, force: true });
+        } catch (retryError) {
+          // Final attempt with different approach
+          console.warn(`Could not cleanup test directory: ${testDir}`);
+        }
+      }
+    }
+    
+    // Force garbage collection if available
+    if (global.gc) {
+      global.gc();
     }
   });
 

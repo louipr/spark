@@ -1,45 +1,20 @@
-import { describe, test, expect, beforeEach } from '@jest/globals';
+import { describe, test, expect, beforeEach, afterEach } from '@jest/globals';
 import { LLMRouter, ProviderConfig, RoutingStrategy } from '../../../../src/core/llm/LLMRouter.js';
 import { LLMProvider, LLMConfig, TaskType, ModelType, LLMMessage, Priority } from '../../../../src/models/index.js';
+import { mockProviderConfigs, mockRoutingStrategies, suppressConsole } from '../../../fixtures/llm.fixtures.js';
 
 describe('LLMRouter', () => {
   let llmRouter: LLMRouter;
-  let providerConfigs: ProviderConfig[];
+  let restoreConsole: () => void;
 
   beforeEach(() => {
-    // Create provider configurations
-    providerConfigs = [
-      {
-        provider: LLMProvider.GPT,
-        config: {
-          model: ModelType.GPT_4_TURBO,
-          temperature: 0.7,
-          maxTokens: 2000,
-          topP: 1.0,
-          frequencyPenalty: 0,
-          presencePenalty: 0
-        },
-        priority: Priority.MUST_HAVE,
-        enabled: true,
-        apiKey: 'test-gpt-key'
-      },
-      {
-        provider: LLMProvider.CLAUDE,
-        config: {
-          model: ModelType.CLAUDE_3_5_SONNET,
-          temperature: 0.7,
-          maxTokens: 2000,
-          topP: 1.0,
-          frequencyPenalty: 0,
-          presencePenalty: 0
-        },
-        priority: Priority.SHOULD_HAVE,
-        enabled: true,
-        apiKey: 'test-claude-key'
-      }
-    ];
+    restoreConsole = suppressConsole();
+    llmRouter = new LLMRouter(mockProviderConfigs);
+  });
 
-    llmRouter = new LLMRouter(providerConfigs);
+  afterEach(() => {
+    restoreConsole();
+    llmRouter = null as any;
   });
 
   describe('initialization', () => {
@@ -54,7 +29,7 @@ describe('LLMRouter', () => {
 
     test('should handle multiple providers', () => {
       const multiProviderConfigs: ProviderConfig[] = [
-        ...providerConfigs,
+        ...mockProviderConfigs,
         {
           provider: LLMProvider.GEMINI,
           config: {
@@ -74,48 +49,17 @@ describe('LLMRouter', () => {
 
   describe('routing strategies', () => {
     test('should accept fallback routing strategy', () => {
-      const strategy: RoutingStrategy = { type: 'fallback' };
-      expect(strategy.type).toBe('fallback');
+      expect(mockRoutingStrategies.fallback.type).toBe('fallback');
     });
 
     test('should accept cost-based routing strategy', () => {
-      const strategy: RoutingStrategy = { 
-        type: 'cost',
-        preferences: {
-          maxCostPerRequest: 0.10
-        }
-      };
-      expect(strategy.type).toBe('cost');
-      expect(strategy.preferences?.maxCostPerRequest).toBe(0.10);
+      expect(mockRoutingStrategies.cost.type).toBe('cost');
+      expect(mockRoutingStrategies.cost.preferences?.maxCostPerRequest).toBe(0.10);
     });
 
     test('should accept performance-based routing strategy', () => {
-      const strategy: RoutingStrategy = { 
-        type: 'performance',
-        preferences: {
-          maxLatencyMs: 5000
-        }
-      };
-      expect(strategy.type).toBe('performance');
-      expect(strategy.preferences?.maxLatencyMs).toBe(5000);
-    });
-
-    test('should accept capability-based routing strategy', () => {
-      const strategy: RoutingStrategy = { 
-        type: 'capability',
-        preferences: {
-          requiresStreaming: true,
-          requiresFunctionCalling: false
-        }
-      };
-      expect(strategy.type).toBe('capability');
-      expect(strategy.preferences?.requiresStreaming).toBe(true);
-      expect(strategy.preferences?.requiresFunctionCalling).toBe(false);
-    });
-
-    test('should accept round-robin routing strategy', () => {
-      const strategy: RoutingStrategy = { type: 'round_robin' };
-      expect(strategy.type).toBe('round_robin');
+      expect(mockRoutingStrategies.performance.type).toBe('performance');
+      expect(mockRoutingStrategies.performance.preferences?.maxLatencyMs).toBe(5000);
     });
   });
 

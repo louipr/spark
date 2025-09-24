@@ -1,29 +1,12 @@
-import { describe, test, expect, beforeEach, jest } from '@jest/globals';
+import { describe, test, expect, beforeEach, afterEach, jest } from '@jest/globals';
 import { LLMInterface } from '../../../../src/core/llm/LLMInterface.js';
 import { LLMProvider, LLMConfig, TaskType, ModelType, LLMMessage, LLMResponse } from '../../../../src/models/index.js';
-import { v4 as uuidv4 } from 'uuid';
+import { mockLLMResponse, mockMessages, suppressConsole } from '../../../fixtures/llm.fixtures.js';
 
-// Create a concrete implementation for testing the abstract class
+// Minimal concrete implementation for testing
 class TestLLMInterface extends LLMInterface {
   async generate(messages: LLMMessage[], taskType: TaskType, options?: Partial<LLMConfig>): Promise<LLMResponse> {
-    return {
-      id: uuidv4(),
-      content: 'Test response',
-      provider: this.provider,
-      model: this.config.model,
-      usage: {
-        promptTokens: 10,
-        completionTokens: 20,
-        totalTokens: 30
-      },
-      finishReason: 'stop',
-      metadata: {
-        requestId: uuidv4(),
-        timestamp: new Date(),
-        processingTime: 100,
-        cacheHit: false
-      }
-    };
+    return mockLLMResponse;
   }
 
   async *stream(messages: LLMMessage[], taskType: TaskType, options?: Partial<LLMConfig>) {
@@ -42,7 +25,7 @@ class TestLLMInterface extends LLMInterface {
       supportsStreaming: true,
       supportsSystemMessages: true,
       supportsFunctionCalling: false,
-      modelVersions: ['gpt-4-turbo-preview', 'gpt-4o']
+      modelVersions: ['gpt-4-turbo']
     };
   }
 
@@ -59,21 +42,24 @@ class TestLLMInterface extends LLMInterface {
   }
 }
 
+const mockConfig: LLMConfig = {
+  model: ModelType.GPT_4_TURBO,
+  temperature: 0.7,
+  maxTokens: 2000
+};
+
 describe('LLMInterface', () => {
   let llmInterface: TestLLMInterface;
-  let mockConfig: LLMConfig;
+  let restoreConsole: () => void;
 
   beforeEach(() => {
-    mockConfig = {
-      model: ModelType.GPT_4_TURBO,
-      temperature: 0.7,
-      maxTokens: 2000,
-      topP: 1.0,
-      frequencyPenalty: 0,
-      presencePenalty: 0
-    };
-
+    restoreConsole = suppressConsole();
     llmInterface = new TestLLMInterface(LLMProvider.GPT, mockConfig);
+  });
+
+  afterEach(() => {
+    restoreConsole();
+    llmInterface = null as any;
   });
 
   describe('construction', () => {

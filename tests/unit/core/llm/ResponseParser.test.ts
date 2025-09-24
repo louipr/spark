@@ -1,12 +1,20 @@
-import { describe, test, expect, beforeEach } from '@jest/globals';
+import { describe, test, expect, beforeEach, afterEach } from '@jest/globals';
 import { ResponseParser } from '../../../../src/core/llm/ResponseParser.js';
 import { TaskType, ModelType, Priority } from '../../../../src/models/index.js';
+import { suppressConsole } from '../../../fixtures/llm.fixtures.js';
 
 describe('ResponseParser', () => {
   let parser: ResponseParser;
+  let restoreConsole: () => void;
 
   beforeEach(() => {
+    restoreConsole = suppressConsole();
     parser = new ResponseParser();
+  });
+
+  afterEach(() => {
+    restoreConsole();
+    parser = null as any;
   });
 
   describe('initialization', () => {

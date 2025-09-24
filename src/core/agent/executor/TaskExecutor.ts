@@ -65,12 +65,18 @@ export class TaskExecutor {
         
         // Add timeout handling
         const timeoutMs = context.timeout || 30000; // Default 30 seconds
+        let timeoutHandle: NodeJS.Timeout | undefined;
         const result = await Promise.race([
           tool.execute(step.params, context),
-          new Promise<never>((_, reject) => 
-            setTimeout(() => reject(new Error(`Task timeout after ${timeoutMs}ms`)), timeoutMs)
-          )
+          new Promise<never>((_, reject) => {
+            timeoutHandle = setTimeout(() => reject(new Error(`Task timeout after ${timeoutMs}ms`)), timeoutMs);
+          })
         ]);
+        
+        // Clear timeout to prevent memory leaks
+        if (timeoutHandle) {
+          clearTimeout(timeoutHandle);
+        }
         
         // Update execution history
         context.history.push({
