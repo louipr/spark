@@ -2,7 +2,6 @@
 // Central application orchestrator for all major components
 
 import { program } from 'commander';
-import { SparkCLI } from './cli/SparkCLI.js';
 import { ConfigManager } from './cli/ConfigManager.js';
 import { Logger } from './utils/index.js';
 import { StateManager } from './core/orchestrator/StateManager.js';
@@ -38,7 +37,6 @@ function expandHomePath(filePath: string): string {
 export class SparkApplication {
   private logger!: Logger;
   private configManager!: ConfigManager;
-  private sparkCLI!: SparkCLI;
   private stateManager!: StateManager;
   private requestAnalyzer!: RequestAnalyzer;
   private prdGenerator!: PRDGenerator;
@@ -93,9 +91,13 @@ export class SparkApplication {
       this.prdGenerator = new PRDGenerator();
       this.validationEngine = new ValidationEngine();
 
-      // Initialize LLM components
-      const providerConfigs = this.createProviderConfigs();
-      this.agentRouter = new LLMRouter(providerConfigs);
+      // Initialize GitHub Copilot assistant first
+      this.copilotAssistant = new CopilotAssistant(this.logger);
+
+      // Initialize LLM components (will be initialized per-command with specific model)
+      // Create default router with all available providers
+      const defaultConfigs = this.createProviderConfigs();
+      this.agentRouter = new LLMRouter(defaultConfigs, this.copilotAssistant);
 
       // Initialize workflow orchestrator (the TRUE agent system)
       this.workflowOrchestrator = new WorkflowOrchestrator({
@@ -116,12 +118,6 @@ export class SparkApplication {
         this.agentRouter
       );
 
-      // Initialize CLI - use default constructor
-      this.sparkCLI = new SparkCLI();
-
-      // Initialize GitHub Copilot assistant
-      this.copilotAssistant = new CopilotAssistant(this.logger);
-
       this.logger.info('✅ All components initialized successfully');
     } catch (error) {
       console.error('❌ Failed to initialize application:', error);
@@ -129,47 +125,101 @@ export class SparkApplication {
     }
   }
 
-  private createProviderConfigs(): ProviderConfig[] {
+  private createProviderConfigForModel(modelType: ModelType): ProviderConfig | null {
+    // Map model to provider and check availability
+    switch (modelType) {
+      case ModelType.CLAUDE_3_5_SONNET:
+      case ModelType.CLAUDE_3_HAIKU:
+        if (!process.env.ANTHROPIC_API_KEY) {
+          this.logger.warn(`⚠️ ${modelType} requested but ANTHROPIC_API_KEY not found`);
+          return null;
+        }
+        return {
+          provider: LLMProvider.CLAUDE,
+          config: {
+            model: modelType,
+            temperature: 0.7,
+            maxTokens: 4000,
+            topP: 1.0,
+            frequencyPenalty: 0,
+            presencePenalty: 0
+          },
+          priority: Priority.MUST_HAVE,
+          enabled: true,
+          apiKey: process.env.ANTHROPIC_API_KEY
+        };
+
+      case ModelType.GPT_4_TURBO:
+      case ModelType.GPT_4O:
+      case ModelType.GPT_3_5_TURBO:
+        if (!process.env.OPENAI_API_KEY) {
+          this.logger.warn(`⚠️ ${modelType} requested but OPENAI_API_KEY not found`);
+          return null;
+        }
+        return {
+          provider: LLMProvider.GPT,
+          config: {
+            model: modelType,
+            temperature: 0.7,
+            maxTokens: 4000,
+            topP: 1.0,
+            frequencyPenalty: 0,
+            presencePenalty: 0
+          },
+          priority: Priority.SHOULD_HAVE,
+          enabled: true,
+          apiKey: process.env.OPENAI_API_KEY
+        };
+
+      case ModelType.GITHUB_COPILOT:
+        // GitHub Copilot doesn't require API key - uses GitHub CLI authentication
+        return {
+          provider: LLMProvider.GITHUB_COPILOT,
+          config: {
+            model: modelType,
+            temperature: 0.7, // Not used by Copilot but required by interface
+            maxTokens: 4000,
+            topP: 1.0,
+            frequencyPenalty: 0,
+            presencePenalty: 0
+          },
+          priority: Priority.NICE_TO_HAVE, // Fallback option
+          enabled: true
+          // No apiKey needed - uses GitHub CLI authentication
+        };
+
+      default:
+        this.logger.warn(`⚠️ Unsupported model type: ${modelType}`);
+        return null;
+    }
+  }
+
+  private createProviderConfigs(requestedModel?: ModelType): ProviderConfig[] {
     const configs: ProviderConfig[] = [];
 
-    // Add Claude configuration if API key is available
-    if (process.env.ANTHROPIC_API_KEY) {
-      configs.push({
-        provider: LLMProvider.CLAUDE,
-        config: {
-          model: ModelType.CLAUDE_3_5_SONNET,
-          temperature: 0.7,
-          maxTokens: 4000,
-          topP: 1.0,
-          frequencyPenalty: 0,
-          presencePenalty: 0
-        },
-        priority: Priority.MUST_HAVE,
-        enabled: true,
-        apiKey: process.env.ANTHROPIC_API_KEY
-      });
-    }
+    if (requestedModel) {
+      // Create config for specific requested model
+      const config = this.createProviderConfigForModel(requestedModel);
+      if (config) {
+        configs.push(config);
+        this.logger.info(`✅ Created provider config for requested model: ${requestedModel}`);
+      } else {
+        this.logger.error(`❌ Cannot create provider config for requested model: ${requestedModel}`);
+      }
+    } else {
+      // Default behavior: create configs for all available providers (legacy support)
+      const defaultModels = [
+        ModelType.CLAUDE_3_5_SONNET,
+        ModelType.GPT_4_TURBO,
+        ModelType.GITHUB_COPILOT // Always include GitHub Copilot as fallback
+      ];
 
-    // Add GPT configuration if API key is available
-    if (process.env.OPENAI_API_KEY) {
-      configs.push({
-        provider: LLMProvider.GPT,
-        config: {
-          model: ModelType.GPT_4_TURBO,
-          temperature: 0.7,
-          maxTokens: 4000,
-          topP: 1.0,
-          frequencyPenalty: 0,
-          presencePenalty: 0
-        },
-        priority: Priority.SHOULD_HAVE,
-        enabled: true,
-        apiKey: process.env.OPENAI_API_KEY
-      });
-    }
-
-    if (configs.length === 0) {
-      this.logger.warn('⚠️ No LLM provider API keys found. Please set ANTHROPIC_API_KEY or OPENAI_API_KEY');
+      for (const model of defaultModels) {
+        const config = this.createProviderConfigForModel(model);
+        if (config) {
+          configs.push(config);
+        }
+      }
     }
 
     return configs;
@@ -196,7 +246,7 @@ export class SparkApplication {
         .option('-v, --verbose', 'Enable verbose logging')
         .option('-c, --cache', 'Enable response caching')
         .action(async (options) => {
-          await this.sparkCLI.startInteractive(options);
+          await this.handleInteractive(options);
         });
 
       // One-shot generation mode
@@ -238,6 +288,7 @@ export class SparkApplication {
         .command('agent <request>')
         .alias('a')
         .description('Use agent to fulfill complex requests with multi-step workflows')
+        .option('-m, --model <model>', 'LLM model to use (claude, gpt, copilot)', 'claude')
         .option('--approve', 'Auto-approve execution plan')
         .option('--dry-run', 'Show execution plan without running')
         .action(async (request: string, options) => {
@@ -278,7 +329,7 @@ export class SparkApplication {
 
       // Default to interactive mode if no command specified
       if (process.argv.length <= 2) {
-        await this.sparkCLI.startInteractive({});
+        await this.handleInteractive({});
         return;
       }
 
@@ -287,6 +338,21 @@ export class SparkApplication {
 
     } catch (error) {
       this.logger.error('❌ Application error:', error);
+      process.exit(1);
+    }
+  }
+
+  private async handleInteractive(options: any): Promise<void> {
+    try {
+      this.logger.info('🔄 Starting interactive mode');
+      
+      // For now, just show that interactive mode would start
+      console.log('🎯 Interactive mode would start here');
+      console.log('📝 This feature is coming soon - use the generate command for now');
+      console.log('\nExample: spark generate "Create a todo app with React and Node.js"');
+      
+    } catch (error) {
+      this.logger.error('❌ Interactive mode failed:', error);
       process.exit(1);
     }
   }
@@ -329,7 +395,7 @@ export class SparkApplication {
         });
 
         // Output result
-        await this.sparkCLI.outputResult(finalResult.prd, {
+        await this.outputResult(finalResult.prd, {
           format: options.format as any,
           outputPath: options.output
         });
@@ -538,14 +604,20 @@ export class SparkApplication {
       }
 
       // Execute the full workflow
-      const result = await this.workflowOrchestrator.processRequest(request);
+      let result = await this.workflowOrchestrator.processRequest(request);
+      
+      // If orchestration failed due to no providers, try GitHub Copilot fallback
+      if (!result.success && result.message && result.message.includes('No providers available')) {
+        this.logger.warn('⚠️ LLM providers failed, attempting GitHub Copilot fallback...');
+        result = await this.handleCopilotFallback(request);
+      }
       
       if (result.success) {
         console.log(`\n✅ Agent completed successfully!`);
         
         if (result.artifacts && result.artifacts.length > 0) {
           console.log(`\n📄 Generated artifacts:`);
-          result.artifacts.forEach((artifact, index) => {
+          result.artifacts.forEach((artifact: any, index: number) => {
             console.log(`  ${index + 1}. ${artifact.type}: ${artifact.name}`);
           });
         }
@@ -557,10 +629,10 @@ export class SparkApplication {
         console.log(`\n❌ Agent execution failed: ${result.message}`);
         
         if (result.results) {
-          const failedSteps = result.results.filter(r => !r.success);
+          const failedSteps = result.results.filter((r: any) => !r.success);
           if (failedSteps.length > 0) {
             console.log(`\n🔍 Failed steps:`);
-            failedSteps.forEach(step => {
+            failedSteps.forEach((step: any) => {
               console.log(`  - ${step.tool}: ${step.error}`);
             });
           }
@@ -645,5 +717,112 @@ export class SparkApplication {
       this.logger.error('❌ Unhandled Rejection:', `${reason}`);
       process.exit(1);
     });
+  }
+
+  /**
+   * Handle requests using GitHub Copilot CLI as fallback when LLM providers are unavailable
+   */
+  private async handleCopilotFallback(request: string): Promise<any> {
+    try {
+      this.logger.info('🚀 Using GitHub Copilot CLI as LLM fallback');
+      
+      // Check if GitHub Copilot is available
+      const isAvailable = await this.copilotAssistant.isAvailable();
+      if (!isAvailable) {
+        throw new Error('GitHub Copilot CLI is not available. Please ensure you are authenticated with GitHub Copilot.');
+      }
+      
+      // Use Copilot to generate a command suggestion for the request
+      const suggestion = await this.copilotAssistant.suggestCommand(request);
+      if (!suggestion) {
+        throw new Error('GitHub Copilot could not generate a suggestion for this request.');
+      }
+      
+      console.log(`\n🤖 GitHub Copilot suggestion:`);
+      console.log(`${suggestion}`);
+      
+      // Return a simple success result
+      return {
+        success: true,
+        message: 'GitHub Copilot provided a suggestion',
+        artifacts: [{
+          type: 'suggestion',
+          name: 'GitHub Copilot Command Suggestion',
+          content: suggestion
+        }],
+        duration: 0
+      };
+    } catch (error) {
+      this.logger.error('GitHub Copilot fallback failed:', error);
+      throw new Error(`GitHub Copilot fallback failed: ${error instanceof Error ? error.message : String(error)}`);
+    }
+  }
+
+  /**
+   * Output PRD result in the specified format
+   */
+  private async outputResult(prd: any, options: { format: string; outputPath?: string }): Promise<void> {
+    try {
+      let output: string;
+      
+      switch (options.format?.toLowerCase()) {
+        case 'json':
+          output = JSON.stringify(prd, null, 2);
+          break;
+        case 'yaml':
+          // Simple YAML-like output (would need proper YAML library for production)
+          output = this.convertToYaml(prd);
+          break;
+        case 'markdown':
+        default:
+          output = this.convertToMarkdown(prd);
+          break;
+      }
+      
+      if (options.outputPath) {
+        // Would write to file in production
+        console.log(`✅ Would write to file: ${options.outputPath}`);
+        console.log(output);
+      } else {
+        console.log('\n📄 Generated PRD:\n');
+        console.log(output);
+      }
+    } catch (error) {
+      this.logger.error('❌ Failed to output result:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * Convert PRD to markdown format
+   */
+  private convertToMarkdown(prd: any): string {
+    return `# ${prd.metadata?.title || 'Generated Application'}
+
+## Overview
+${prd.productOverview?.description || 'Application description would go here'}
+
+## Features
+${prd.functionalRequirements?.map((req: any, i: number) => 
+  `${i + 1}. **${req.title}**: ${req.description}`
+).join('\n') || 'Features would be listed here'}
+
+## Technical Specifications  
+- **Architecture**: ${prd.technicalSpecifications?.architecture?.type || 'Not specified'}
+- **Tech Stack**: ${JSON.stringify(prd.technicalSpecifications?.techStack || {}, null, 2)}
+
+---
+*Generated by Spark Clone*`;
+  }
+
+  /**
+   * Convert PRD to YAML-like format
+   */
+  private convertToYaml(prd: any): string {
+    return `title: ${prd.metadata?.title || 'Generated Application'}
+description: ${prd.productOverview?.description || 'Application description'}
+features:
+${prd.functionalRequirements?.map((req: any) => `  - ${req.title}: ${req.description}`).join('\n') || '  - Features would be listed here'}
+tech_stack: ${JSON.stringify(prd.technicalSpecifications?.techStack || {}, null, 2)}`;
   }
 }

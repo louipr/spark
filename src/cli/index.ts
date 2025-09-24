@@ -39,7 +39,7 @@ program
   .argument('[description]', 'Project description (optional - will prompt if not provided)')
   .option('-o, --output <path>', 'Output file path for the generated PRD')
   .option('-f, --format <type>', 'Output format (json, markdown, yaml)', 'markdown')
-  .option('-m, --model <model>', 'LLM model to use (claude, gpt)', 'claude')
+  .option('-m, --model <model>', 'LLM model to use (claude, gpt, copilot)', 'claude')
   .option('-i, --iterations <num>', 'Maximum iterations for refinement', '3')
   .option('--no-interactive', 'Disable interactive mode')
   .option('--template <name>', 'Use predefined template')

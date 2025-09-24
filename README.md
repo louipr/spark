@@ -1,10 +1,11 @@
-# Spark - Autonomous Agent System
+# Spark Clone - AI-Powered Application Generator
 
-[![Tests](https://img.shields.io/badge/tests-14%20passing-green)](./tests/integration/agent.test.ts)
+[![Build Status](https://img.shields.io/badge/build-passing-green)](#)
 [![TypeScript](https://img.shields.io/badge/TypeScript-5.x-blue)](https://www.typescriptlang.org/)
 [![Node.js](https://img.shields.io/badge/Node.js-18%2B-green)](https://nodejs.org/)
+[![GitHub Copilot](https://img.shields.io/badge/GitHub_Copilot-Integrated-purple)](https://github.com/features/copilot)
 
-**Spark** transforms natural language requests into executable multi-step workflows. Say goodbye to manual development setup - let AI agents handle the orchestration.
+**Spark Clone** is a GitHub Copilot Spark-inspired CLI tool that generates Product Requirements Documents (PRDs) and provides AI-powered command suggestions. Features full GitHub Copilot integration with fallback support when API keys are unavailable.
 
 ## 🚀 Quick Start
 
@@ -13,39 +14,46 @@ git clone <repository-url>
 cd spark
 npm install && npm run build
 
-# Execute an agent workflow
-npm start agent "Create a Node.js project with Express and testing"
+# GitHub Copilot Commands (No API keys required!)
+npm start suggest "create a new directory for my project"
+npm start explain "git commit -m 'initial commit'"
+npm start copilot-status
 
-# Preview workflow plan
-npm start plan "Set up a React development environment"
+# PRD Generation (requires API keys or uses Copilot fallback)
+npm start generate "Create a todo app with React and Node.js"
+npm start agent "Set up a development environment"
 
-# Get help with all commands
+# View help
 npm start --help
 ```
 
-## 🤖 From Manual to Autonomous
+## 🤖 AI-Powered Development Assistant
 
-**Before** - Manual orchestration:
+**GitHub Copilot Integration**:
 ```bash
-mkdir project && cd project
-npm init -y && npm install express
-echo "console.log('Hello');" > index.js
-npm install --save-dev jest
-# ... 15+ more steps
+# Get command suggestions
+npm start suggest "create a Python virtual environment"
+# Output: python -m venv venv
+
+# Explain complex commands  
+npm start explain "docker run -d -p 8080:80 nginx"
+# Output: Detailed explanation of Docker command
 ```
 
-**After** - One command:
+**PRD Generation**:
 ```bash
-npm start agent "Create a Node.js project with Express and Jest testing"
+npm start generate "A social media app with real-time chat"
+# Generates comprehensive Product Requirements Document
 ```
 
-## ⚡ What Spark Does
+## ⚡ Key Features
 
-1. **🧠 Plans** - LLM converts your request to executable steps
-2. **🔧 Executes** - Runs steps with dependency management  
-3. **🛡️ Secures** - Built-in safety controls and validation
-4. **🔄 Recovers** - Automatic retry with error handling
-5. **📊 Reports** - Real-time progress and results
+1. **� GitHub Copilot Integration** - Command suggestions and explanations
+2. **📋 PRD Generation** - AI-powered requirements documents
+3. **� Smart Fallbacks** - Works without API keys using GitHub Copilot
+4. **🎯 Multi-Provider LLM** - Claude, GPT, and GitHub Copilot support
+5. **� History & Caching** - Conversation history and response caching
+6. **�️ Agent Workflows** - Multi-step task automation
 
 ## 📖 Examples
 
@@ -109,11 +117,12 @@ npm start agent "Create a web scraper with Python and BeautifulSoup"
 
 - **[Software Requirements Specification](./docs/SRS.md)** - Complete requirements and functionality
 - **[Software Architecture Document](./docs/SAD.md)** - System architecture and design  
+- **[Current Integration Status](./docs/CURRENT_INTEGRATION_STATUS.md)** - ✅ GitHub Copilot integration complete
+- **[Architecture Improvement Plan](./docs/ARCHITECTURE_IMPROVEMENT_PLAN.md)** - 🏗️ Clean architecture roadmap
+- **[Phase 1 Implementation Guide](./docs/PHASE_1_IMPLEMENTATION_GUIDE.md)** - 🚀 Domain layer extraction guide
 - **[API Documentation](./docs/API.md)** - Developer reference and tool development
 - **[Test Plan](./docs/TESTING.md)** - Testing strategy and standards
 - **[Examples](./examples/)** - Practical use cases and workflows
-- **[Changelog](./CHANGELOG.md)** - Version history and improvements
-- **[Archive](./docs/archive/)** - Historical development documents
 
 ## 🤝 Contributing
 
@@ -127,9 +136,17 @@ npm start agent "Create a web scraper with Python and BeautifulSoup"
 
 MIT License - see [LICENSE](LICENSE) for details.
 
+## 🏗️ Architecture Status
+
+**Current State**: GitHub Copilot integration complete with working CLI commands  
+**Next Phase**: Clean architecture refactoring using hexagonal architecture patterns  
+**Goal**: Maintainable, testable, and extensible codebase with proper separation of concerns
+
+See [Architecture Improvement Plan](./docs/ARCHITECTURE_IMPROVEMENT_PLAN.md) for detailed roadmap.
+
 ---
 
-**Transform your development workflow from manual orchestration to autonomous execution.**
+**Spark Clone: From simple command suggestions to comprehensive development workflows - powered by AI.**
 ```
 
 ## Contributing

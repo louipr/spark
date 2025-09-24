@@ -594,6 +594,9 @@ export class SparkCLI extends EventEmitter {
         return ModelType.GPT_4_TURBO;
       case 'gpt-3.5-turbo':
         return ModelType.GPT_3_5_TURBO;
+      case 'copilot':
+      case 'github-copilot':
+        return ModelType.GITHUB_COPILOT;
       default:
         return ModelType.CLAUDE_3_5_SONNET;
     }

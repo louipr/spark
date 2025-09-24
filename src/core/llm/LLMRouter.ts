@@ -12,6 +12,9 @@ import {
 import { LLMInterface } from './LLMInterface.js';
 import { ClaudeProvider } from './ClaudeProvider.js';
 import { GPTProvider } from './GPTProvider.js';
+import { GitHubCopilotProvider } from './GitHubCopilotProvider.js';
+import { CopilotAssistant } from '../../integrations/index.js';
+
 
 export interface ProviderConfig {
   provider: LLMProvider;
@@ -36,8 +39,10 @@ export class LLMRouter {
   private providerConfigs: Map<LLMProvider, ProviderConfig> = new Map();
   private requestCounts: Map<LLMProvider, number> = new Map();
   private lastUsedProvider?: LLMProvider;
+  private copilotAssistant?: CopilotAssistant;
 
-  constructor(configs: ProviderConfig[]) {
+  constructor(configs: ProviderConfig[], copilotAssistant?: CopilotAssistant) {
+    this.copilotAssistant = copilotAssistant;
     this.initializeProviders(configs);
   }
 
@@ -324,6 +329,14 @@ export class LLMRouter {
         
         case LLMProvider.GPT:
           agent = new GPTProvider(config.config, config.apiKey);
+          break;
+        
+        case LLMProvider.GITHUB_COPILOT:
+          if (!this.copilotAssistant) {
+            console.warn('GitHub Copilot provider requested but CopilotAssistant not provided');
+            continue;
+          }
+          agent = new GitHubCopilotProvider(config.config, this.copilotAssistant);
           break;
         
         default:

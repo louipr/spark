@@ -35,29 +35,42 @@ export class WorkflowPlanner {
   constructor(private llmRouter: LLMRouter) {}
 
   async createPlan(goal: string): Promise<WorkflowPlan> {
-    // 1. Use LLM to decompose goal into steps
-    const decompositionPrompt = this.buildDecompositionPrompt(goal);
-    const response = await this.llmRouter.route([{
-      role: 'user',
-      content: decompositionPrompt
-    }], TaskType.CODE_GENERATION, { type: 'fallback' }, {
-      model: ModelType.CLAUDE_3_5_SONNET,
-      temperature: 0.1,
-      maxTokens: 2000
-    });
-    
-    // 2. Parse response into workflow steps
-    const steps = this.parseSteps(response.content);
-    
-    // 3. Identify dependencies
-    const stepsWithDeps = this.identifyDependencies(steps);
-    
-    // 4. Return structured plan
-    return {
-      goal,
-      steps: stepsWithDeps,
-      estimatedDuration: this.estimateDuration(stepsWithDeps)
-    };
+    try {
+      // Check if we have proper LLM providers available (not just GitHub Copilot)
+      const hasProperLLM = await this.hasStructuredLLMAvailable();
+      
+      if (!hasProperLLM) {
+        // Use simplified planning for GitHub Copilot only scenarios
+        return this.createSimplifiedPlan(goal);
+      }
+
+      // 1. Use LLM to decompose goal into steps
+      const decompositionPrompt = this.buildDecompositionPrompt(goal);
+      const response = await this.llmRouter.route([{
+        role: 'user',
+        content: decompositionPrompt
+      }], TaskType.CODE_GENERATION, { type: 'fallback' }, {
+        model: ModelType.CLAUDE_3_5_SONNET,
+        temperature: 0.1,
+        maxTokens: 2000
+      });
+      
+      // 2. Parse response into workflow steps
+      const steps = this.parseSteps(response.content);
+      
+      // 3. Identify dependencies
+      const stepsWithDeps = this.identifyDependencies(steps);
+      
+      // 4. Return structured plan
+      return {
+        goal,
+        steps: stepsWithDeps,
+        estimatedDuration: this.estimateDuration(stepsWithDeps)
+      };
+    } catch (error) {
+      console.warn('Complex planning failed, falling back to simplified plan:', error);
+      return this.createSimplifiedPlan(goal);
+    }
   }
 
   private buildDecompositionPrompt(goal: string): string {

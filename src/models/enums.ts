@@ -59,7 +59,8 @@ export enum ModelType {
   CLAUDE_3_HAIKU = 'claude-3-haiku-20240307',
   GPT_4_TURBO = 'gpt-4-turbo-preview',
   GPT_4O = 'gpt-4o',
-  GPT_3_5_TURBO = 'gpt-3.5-turbo'
+  GPT_3_5_TURBO = 'gpt-3.5-turbo',
+  GITHUB_COPILOT = 'github-copilot'
 }
 
 export enum OutputFormat {

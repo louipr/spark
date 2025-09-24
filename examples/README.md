@@ -37,15 +37,29 @@ Additional examples are planned for future releases:
 
 ## Running Examples
 
+**Prerequisites**: Set up your LLM API keys first:
+```bash
+export ANTHROPIC_API_KEY="your-claude-api-key"
+# OR
+export OPENAI_API_KEY="your-openai-api-key"
+```
+
 All examples can be run using the agent system:
 
 ```bash
 # Plan without execution (shows what will be done)
 npm start plan "Create a Python web scraper for news articles"
 
-# Execute the workflow
+# Execute the workflow  
 npm start agent "Create a Python web scraper for news articles"
 
 # Get help with available commands
-npm start --help
+npm start -- --help
+
+# Commands that work without API keys:
+npm start copilot-status          # Check GitHub Copilot availability
+npm start -- config --list        # View current configuration
+npm start -- history              # View conversation history
 ```
+
+**Note**: Commands `plan`, `agent`, `generate`, and `suggest` require API keys. Without them, you'll get "No providers available" error. All commands now exit properly after completion.
