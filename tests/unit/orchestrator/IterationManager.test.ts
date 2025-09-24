@@ -8,7 +8,7 @@ import {
 import { StateManager } from '../../../src/core/orchestrator/StateManager.js';
 import { RequestAnalyzer } from '../../../src/core/analyzer/index.js';
 import { PRDGenerator } from '../../../src/core/generator/index.js';
-import { AgentRouter } from '../../../src/core/llm/index.js';
+import { LLMRouter } from '../../../src/core/llm/index.js';
 import { 
   UserRequest, 
   PRD, 
@@ -31,7 +31,7 @@ describe('IterationManager', () => {
   let mockStateManager: jest.Mocked<StateManager>;
   let mockRequestAnalyzer: jest.Mocked<RequestAnalyzer>;
   let mockPRDGenerator: jest.Mocked<PRDGenerator>;
-  let mockAgentRouter: jest.Mocked<AgentRouter>;
+  let mockLLMRouter: jest.Mocked<LLMRouter>;
   let mockUserRequest: UserRequest;
   let mockConfig: IterationConfig;
 
@@ -40,7 +40,7 @@ describe('IterationManager', () => {
     mockStateManager = new StateManager() as jest.Mocked<StateManager>;
     mockRequestAnalyzer = new RequestAnalyzer() as jest.Mocked<RequestAnalyzer>;
     mockPRDGenerator = new PRDGenerator() as jest.Mocked<PRDGenerator>;
-    mockAgentRouter = new AgentRouter([]) as jest.Mocked<AgentRouter>;
+    mockLLMRouter = new LLMRouter([]) as jest.Mocked<LLMRouter>;
 
     mockConfig = {
       maxIterations: 3,
@@ -62,7 +62,7 @@ describe('IterationManager', () => {
       mockStateManager,
       mockRequestAnalyzer,
       mockPRDGenerator,
-      mockAgentRouter,
+      mockLLMRouter,
       mockConfig
     );
   });
@@ -78,7 +78,7 @@ describe('IterationManager', () => {
         mockStateManager,
         mockRequestAnalyzer,
         mockPRDGenerator,
-        mockAgentRouter
+        mockLLMRouter
       );
 
       expect(defaultManager).toBeDefined();
@@ -91,7 +91,7 @@ describe('IterationManager', () => {
         mockStateManager,
         mockRequestAnalyzer,
         mockPRDGenerator,
-        mockAgentRouter,
+        mockLLMRouter,
         partialConfig
       );
 
@@ -131,7 +131,7 @@ describe('IterationManager', () => {
           mockStateManager,
           mockRequestAnalyzer,
           mockPRDGenerator,
-          mockAgentRouter,
+          mockLLMRouter,
           edgeConfig
         );
       }).not.toThrow();
@@ -225,9 +225,9 @@ describe('IterationManager', () => {
       expect(mockPRDGenerator.generate).toBeDefined();
     });
 
-    test('should accept valid AgentRouter dependency', () => {
-      expect(mockAgentRouter).toBeDefined();
-      expect(mockAgentRouter.route).toBeDefined();
+    test('should accept valid LLMRouter dependency', () => {
+      expect(mockLLMRouter).toBeDefined();
+      expect(mockLLMRouter.route).toBeDefined();
     });
   });
 
