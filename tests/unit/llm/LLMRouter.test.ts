@@ -1,9 +1,9 @@
 import { describe, test, expect, beforeEach } from '@jest/globals';
-import { AgentRouter, ProviderConfig, RoutingStrategy } from '../../../src/core/llm/AgentRouter.js';
+import { LLMRouter, ProviderConfig, RoutingStrategy } from '../../../src/core/llm/LLMRouter.js';
 import { LLMProvider, LLMConfig, TaskType, ModelType, LLMMessage, Priority } from '../../../src/models/index.js';
 
-describe('AgentRouter', () => {
-  let agentRouter: AgentRouter;
+describe('LLMRouter', () => {
+  let llmRouter: LLMRouter;
   let providerConfigs: ProviderConfig[];
 
   beforeEach(() => {
@@ -39,17 +39,17 @@ describe('AgentRouter', () => {
       }
     ];
 
-    agentRouter = new AgentRouter(providerConfigs);
+    llmRouter = new LLMRouter(providerConfigs);
   });
 
   describe('initialization', () => {
     test('should initialize with provider configurations', () => {
-      expect(agentRouter).toBeDefined();
-      expect(agentRouter).toBeInstanceOf(AgentRouter);
+      expect(llmRouter).toBeDefined();
+      expect(llmRouter).toBeInstanceOf(LLMRouter);
     });
 
     test('should handle empty configurations', () => {
-      expect(() => new AgentRouter([])).not.toThrow();
+      expect(() => new LLMRouter([])).not.toThrow();
     });
 
     test('should handle multiple providers', () => {
@@ -68,7 +68,7 @@ describe('AgentRouter', () => {
         }
       ];
 
-      expect(() => new AgentRouter(multiProviderConfigs)).not.toThrow();
+      expect(() => new LLMRouter(multiProviderConfigs)).not.toThrow();
     });
   });
 
