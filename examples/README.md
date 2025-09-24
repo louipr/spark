@@ -24,28 +24,28 @@ npm start agent "Set up a Python development environment with virtual env, Flask
 See individual files for detailed examples:
 
 - [`web-scraper.md`](./web-scraper.md) - Python web scraper with BeautifulSoup
-- [`react-component-library.md`](./react-component-library.md) - React component library with Storybook
-- [`api-with-auth.md`](./api-with-auth.md) - REST API with JWT authentication
-- [`ci-cd-pipeline.md`](./ci-cd-pipeline.md) - GitHub Actions CI/CD setup
-- [`microservices.md`](./microservices.md) - Microservices architecture setup
 
-## Custom Tool Examples
-
-- [`custom-database-tool.ts`](./custom-database-tool.ts) - Database operations tool
-- [`custom-deployment-tool.ts`](./custom-deployment-tool.ts) - AWS deployment automation
-- [`custom-testing-tool.ts`](./custom-testing-tool.ts) - Advanced testing automation
+### Coming Soon
+Additional examples are planned for future releases:
+- React component library with Storybook
+- REST API with JWT authentication  
+- GitHub Actions CI/CD setup
+- Microservices architecture setup
+- Custom database operations tool
+- AWS deployment automation
+- Advanced testing automation
 
 ## Running Examples
 
 All examples can be run using the agent system:
 
 ```bash
-# Plan without execution
-npm start agent plan "Create a Python web scraper for news articles"
+# Plan without execution (shows what will be done)
+npm start plan "Create a Python web scraper for news articles"
 
 # Execute the workflow
 npm start agent "Create a Python web scraper for news articles"
 
-# Run the demo for a quick overview
-node demo.js
+# Get help with available commands
+npm start --help
 ```

@@ -17,10 +17,10 @@ npm install && npm run build
 npm start agent "Create a Node.js project with Express and testing"
 
 # Preview workflow plan
-npm start agent plan "Set up a React development environment"
+npm start plan "Set up a React development environment"
 
-# Try the demo (no API keys required)
-node demo.js
+# Get help with all commands
+npm start --help
 ```
 
 ## 🤖 From Manual to Autonomous
@@ -96,9 +96,10 @@ Spark includes multiple layers of security:
 ## 🚀 Get Started
 
 ```bash
-# Quick demo (no API keys needed)
-node demo.js
+# Preview what Spark will do (no API keys needed)
+npm start plan "Create a web scraper with Python and BeautifulSoup"
 
+# Execute with your API keys
 export ANTHROPIC_API_KEY=your_key
 export OPENAI_API_KEY=your_key
 npm start agent "Create a web scraper with Python and BeautifulSoup"
@@ -109,7 +110,9 @@ npm start agent "Create a web scraper with Python and BeautifulSoup"
 - **[Software Requirements Specification](./docs/SRS.md)** - Complete requirements and functionality
 - **[Software Architecture Document](./docs/SAD.md)** - System architecture and design  
 - **[API Documentation](./docs/API.md)** - Developer reference and tool development
+- **[Test Plan](./docs/TESTING.md)** - Testing strategy and standards
 - **[Examples](./examples/)** - Practical use cases and workflows
+- **[Changelog](./CHANGELOG.md)** - Version history and improvements
 
 ## 🤝 Contributing
 

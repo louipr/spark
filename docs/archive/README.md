@@ -32,11 +32,15 @@ All valuable content from these archived documents has been integrated into the 
 - **User Guide** → `README.md`
 - **Examples** → `examples/`
 
+### Missing Historical Files
+
+- **plan.md**: Original specification referenced in handoff docs. Content was integrated into SRS.md during standardization process.
+
 ## ⚠️ Note
 
 These documents are kept for historical reference only. For current documentation, see:
-- [Documentation Index](../INDEX.md)
 - [Main README](../../README.md)
-- [Current Documentation](../)
+- [Documentation](../)
+- [Current Documentation](../README.md)
 
 Do not reference archived content for current development or usage.
