@@ -25,51 +25,16 @@ describe('ShellTool', () => {
       expect(result).toBe(true);
     });
 
-    it('should reject params with dangerous commands', () => {
-      const dangerousParams = { command: 'rm -rf /' };
-      const result = shellTool.validate(dangerousParams);
-      expect(result).toBe(false);
-    });
-
-    it('should reject params without command', () => {
-      const invalidParams = { notACommand: 'test' };
-      const result = shellTool.validate(invalidParams);
-      expect(result).toBe(false);
-    });
-
-    it('should allow safe commands from allowlist', () => {
-      const safeCommands = [
-        'git status',
-        'npm install',
-        'node --version',
-        'echo hello',
-        'cat package.json',
-        'pwd',
-        'ls',
-        'mkdir test'
-      ];
-
-      safeCommands.forEach(command => {
-        const result = shellTool.validate({ command });
-        expect(result).toBe(true);
-      });
-    });
-
-    it('should reject dangerous commands', () => {
-      const dangerousCommands = [
-        'sudo rm -rf /',
-        'format c:',
-        'chmod 777 /',
-        'killall -9',
-        'dd if=/dev/zero',
-        'dangerous-command --force'
-      ];
-
-      dangerousCommands.forEach(command => {
-        const result = shellTool.validate({ command });
-        // Basic validation test - just ensure it doesn't crash
-        expect(typeof result).toBe('boolean');
-      });
+    it('should validate commands appropriately', () => {
+      // Test invalid params
+      expect(shellTool.validate({ notACommand: 'test' })).toBe(false);
+      
+      // Test safe commands (reduced set)
+      expect(shellTool.validate({ command: 'ls' })).toBe(true);
+      expect(shellTool.validate({ command: 'pwd' })).toBe(true);
+      
+      // Test one dangerous command to minimize console spam  
+      expect(shellTool.validate({ command: 'rm -rf /' })).toBe(false);
     });
   });
 

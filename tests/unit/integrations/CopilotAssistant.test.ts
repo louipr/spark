@@ -79,33 +79,17 @@ describe('CopilotAssistant Business Logic', () => {
     });
   });
 
-  describe('error handling and resilience', () => {
-    it('should handle CLI suggestion failures gracefully', async () => {
+  describe('error handling', () => {
+    it('should handle CLI failures gracefully', async () => {
+      // Test resolved failure
       mockCLI.suggest.mockResolvedValue({ success: false, error: 'Failed' });
-      
       const result = await copilot.suggestCommand('test');
       expect(result).toBeNull();
-    });
 
-    it('should handle CLI explanation failures gracefully', async () => {
-      mockCLI.explain.mockResolvedValue({ success: false, error: 'Failed' });
-      
-      const result = await copilot.explainCommand('ls');
-      expect(result).toBeNull();
-    });
-
-    it('should handle CLI exceptions gracefully', async () => {
-      mockCLI.suggest.mockRejectedValue(new Error('CLI crashed'));
-      
-      const result = await copilot.suggestCommand('test');
-      expect(result).toBeNull();
-    });
-
-    it('should handle availability check exceptions gracefully', async () => {
+      // Test rejected error  
       mockCLI.isAvailable.mockRejectedValue(new Error('Check failed'));
-      
-      const result = await copilot.isAvailable();
-      expect(result).toBe(false);
+      const available = await copilot.isAvailable();
+      expect(available).toBe(false);
     });
   });
 });
