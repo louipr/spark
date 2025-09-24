@@ -63,7 +63,14 @@ export class TaskExecutor {
       try {
         console.log(`Executing step: ${step.name} (attempt ${attempt + 1}/${retryPolicy.maxRetries + 1})`);
         
-        const result = await tool.execute(step.params, context);
+        // Add timeout handling
+        const timeoutMs = context.timeout || 30000; // Default 30 seconds
+        const result = await Promise.race([
+          tool.execute(step.params, context),
+          new Promise<never>((_, reject) => 
+            setTimeout(() => reject(new Error(`Task timeout after ${timeoutMs}ms`)), timeoutMs)
+          )
+        ]);
         
         // Update execution history
         context.history.push({

@@ -11,11 +11,11 @@ import {
   TokenUsage,
   ResponseMetadata
 } from '../../models/index.js';
-import { LLMInterface } from './LLMInterface.js';
+import { BaseLLMProvider, ProviderModelMapping, StreamChunk } from './BaseLLMProvider.js';
 
-export class GPTProvider extends LLMInterface {
+export class GPTProvider extends BaseLLMProvider {
   private client: OpenAI;
-  private readonly modelMapping = {
+  protected readonly modelMapping: ProviderModelMapping = {
     [ModelType.GPT_4_TURBO]: 'gpt-4-turbo-preview',
     [ModelType.GPT_4O]: 'gpt-4o',
     [ModelType.GPT_3_5_TURBO]: 'gpt-3.5-turbo'
@@ -29,95 +29,11 @@ export class GPTProvider extends LLMInterface {
     });
   }
 
-  /**
-   * Generate a response from GPT
-   */
-  async generate(
-    messages: LLMMessage[],
-    taskType: TaskType,
-    options?: Partial<LLMConfig>
-  ): Promise<LLMResponse> {
-    this.validateMessages(messages);
-    
-    const effectiveConfig = { ...this.config, ...options };
-    const contextualMessages = this.addContextToMessages(messages, taskType);
-    const preparedMessages = this.prepareMessages(contextualMessages);
 
-    return this.handleRateLimit(async () => {
-      const startTime = Date.now();
-      
-      const response = await this.client.chat.completions.create({
-        model: this.modelMapping[effectiveConfig.model as keyof typeof this.modelMapping] || this.modelMapping[ModelType.GPT_4O],
-        messages: preparedMessages,
-        max_tokens: effectiveConfig.maxTokens,
-        temperature: effectiveConfig.temperature,
-        top_p: effectiveConfig.topP,
-        frequency_penalty: effectiveConfig.frequencyPenalty,
-        presence_penalty: effectiveConfig.presencePenalty,
-        stop: effectiveConfig.stopSequences
-      });
 
-      const processingTime = Date.now() - startTime;
-      const llmResponse = this.parseResponse(response, processingTime);
-      
-      this.logRequest(contextualMessages, taskType, llmResponse);
-      
-      return llmResponse;
-    });
-  }
 
-  /**
-   * Stream a response from GPT
-   */
-  async* stream(
-    messages: LLMMessage[],
-    taskType: TaskType,
-    options?: Partial<LLMConfig>
-  ): AsyncGenerator<string, void, unknown> {
-    this.validateMessages(messages);
-    
-    const effectiveConfig = { ...this.config, ...options };
-    const contextualMessages = this.addContextToMessages(messages, taskType);
-    const preparedMessages = this.prepareMessages(contextualMessages);
 
-    const stream = await this.client.chat.completions.create({
-      model: this.modelMapping[effectiveConfig.model as keyof typeof this.modelMapping] || this.modelMapping[ModelType.GPT_4O],
-      messages: preparedMessages,
-      max_tokens: effectiveConfig.maxTokens,
-      temperature: effectiveConfig.temperature,
-      top_p: effectiveConfig.topP,
-      frequency_penalty: effectiveConfig.frequencyPenalty,
-      presence_penalty: effectiveConfig.presencePenalty,
-      stop: effectiveConfig.stopSequences,
-      stream: true
-    });
 
-    for await (const chunk of stream) {
-      const content = chunk.choices[0]?.delta?.content;
-      if (content) {
-        yield content;
-      }
-    }
-  }
-
-  /**
-   * Check if GPT API is available
-   */
-  async isAvailable(): Promise<boolean> {
-    try {
-      // Simple ping to check API availability
-      const response = await this.client.chat.completions.create({
-        model: this.modelMapping[ModelType.GPT_3_5_TURBO], // Use fastest model for ping
-        messages: [{ role: 'user', content: 'ping' }],
-        max_tokens: 10
-      });
-      
-      return !!response.choices[0]?.message?.content;
-    } catch (error) {
-      console.warn('GPT API unavailable:', error);
-      return false;
-    }
-  }
 
   /**
    * Get GPT capabilities
@@ -281,5 +197,80 @@ export class GPTProvider extends LLMInterface {
       
       return llmResponse;
     });
+  }
+
+  /**
+   * Execute the actual API request to GPT
+   */
+  protected async executeRequest(
+    preparedMessages: any[],
+    config: LLMConfig
+  ): Promise<any> {
+    return await this.client.chat.completions.create({
+      model: this.getModelName(config.model),
+      messages: preparedMessages,
+      max_tokens: config.maxTokens,
+      temperature: config.temperature,
+      top_p: config.topP,
+      frequency_penalty: config.frequencyPenalty,
+      presence_penalty: config.presencePenalty,
+      stop: config.stopSequences
+    });
+  }
+
+  /**
+   * Execute a streaming API request to GPT
+   */
+  protected async executeStreamRequest(
+    preparedMessages: any[],
+    config: LLMConfig
+  ): Promise<any> {
+    return await this.client.chat.completions.create({
+      model: this.getModelName(config.model),
+      messages: preparedMessages,
+      max_tokens: config.maxTokens,
+      temperature: config.temperature,
+      top_p: config.topP,
+      frequency_penalty: config.frequencyPenalty,
+      presence_penalty: config.presencePenalty,
+      stop: config.stopSequences,
+      stream: true
+    });
+  }
+
+  /**
+   * Process streaming chunks from GPT
+   */
+  protected async* processStreamChunk(stream: any): AsyncGenerator<StreamChunk, void, unknown> {
+    for await (const chunk of stream) {
+      const content = chunk.choices[0]?.delta?.content;
+      if (content) {
+        yield { content };
+      }
+      if (chunk.choices[0]?.finish_reason) {
+        yield { finished: true };
+      }
+    }
+  }
+
+  /**
+   * Validate that the ping response indicates successful connection
+   */
+  protected validatePingResponse(response: any): boolean {
+    return !!response.choices[0]?.message?.content;
+  }
+
+  /**
+   * Get the fastest/cheapest model for availability testing
+   */
+  protected getFastestModel(): ModelType {
+    return ModelType.GPT_3_5_TURBO;
+  }
+
+  /**
+   * Get the default model if no specific model is requested
+   */
+  protected getDefaultModel(): ModelType {
+    return ModelType.GPT_4O;
   }
 }

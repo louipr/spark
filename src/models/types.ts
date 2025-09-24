@@ -363,7 +363,7 @@ export interface ComponentProperty {
   name: string;
   type: string;
   required: boolean;
-  defaultValue?: any;
+  defaultValue?: unknown;
   description: string;
 }
 
@@ -454,15 +454,15 @@ export interface APIParameter {
 
 export interface RequestBodySpec {
   contentType: string;
-  schema: any; // JSON Schema
-  examples: Record<string, any>;
+  schema: Record<string, unknown>; // JSON Schema
+  examples: Record<string, unknown>;
 }
 
 export interface APIResponse {
   statusCode: number;
   description: string;
-  schema?: any;
-  examples?: Record<string, any>;
+  schema?: Record<string, unknown>;
+  examples?: Record<string, unknown>;
   headers?: Record<string, string>;
 }
 
@@ -890,7 +890,7 @@ export interface SessionState {
   userId?: string;
   currentPRD?: PRD;
   history: HistoryEntry[];
-  context: Map<string, any>;
+  context: Map<string, unknown>;
   preferences: UserPreferences;
   createdAt: Date;
   lastActivity: Date;
@@ -900,8 +900,8 @@ export interface HistoryEntry {
   id: string;
   type: 'request' | 'response' | 'iteration' | 'export';
   timestamp: Date;
-  data: any;
-  metadata: Record<string, any>;
+  data: unknown;
+  metadata: Record<string, unknown>;
 }
 
 // ============================================================================

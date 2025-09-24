@@ -1,8 +1,8 @@
 // FeatureDetector Simple Unit Tests
 
 import { describe, test, expect, beforeEach } from '@jest/globals';
-import { FeatureDetector } from '../../../src/core/analyzer/FeatureDetector.js';
-import { AppType } from '../../../src/models/index.js';
+import { FeatureDetector } from '../../../../src/core/analyzer/FeatureDetector.js';
+import { AppType } from '../../../../src/models/index.js';
 
 describe('FeatureDetector', () => {
   let detector: FeatureDetector;

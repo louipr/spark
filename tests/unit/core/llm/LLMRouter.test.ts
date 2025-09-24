@@ -1,6 +1,6 @@
 import { describe, test, expect, beforeEach } from '@jest/globals';
-import { LLMRouter, ProviderConfig, RoutingStrategy } from '../../../src/core/llm/LLMRouter.js';
-import { LLMProvider, LLMConfig, TaskType, ModelType, LLMMessage, Priority } from '../../../src/models/index.js';
+import { LLMRouter, ProviderConfig, RoutingStrategy } from '../../../../src/core/llm/LLMRouter.js';
+import { LLMProvider, LLMConfig, TaskType, ModelType, LLMMessage, Priority } from '../../../../src/models/index.js';
 
 describe('LLMRouter', () => {
   let llmRouter: LLMRouter;

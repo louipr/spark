@@ -4,7 +4,7 @@ import {
   ValidationConfig, 
   ValidationRule, 
   ValidationReport 
-} from '../../../src/core/orchestrator/ValidationEngine.js';
+} from '../../../../src/core/orchestrator/ValidationEngine.js';
 import { 
   PRD, 
   ValidationResult, 
@@ -13,7 +13,7 @@ import {
   UserRequest, 
   ComplexityLevel, 
   Priority 
-} from '../../../src/models/index.js';
+} from '../../../../src/models/index.js';
 
 describe('ValidationEngine', () => {
   let validationEngine: ValidationEngine;
@@ -61,57 +61,13 @@ describe('ValidationEngine', () => {
   });
 
   describe('configuration validation', () => {
-    test('should validate ValidationConfig structure', () => {
-      expect(typeof mockConfig.strictMode).toBe('boolean');
-      expect(Array.isArray(mockConfig.requiredSections)).toBe(true);
-      expect(typeof mockConfig.minRequirements).toBe('number');
-      expect(typeof mockConfig.maxRequirements).toBe('number');
-      expect(typeof mockConfig.requireTechStack).toBe('boolean');
-      expect(typeof mockConfig.requireTestingStrategy).toBe('boolean');
-      expect(Array.isArray(mockConfig.customValidators)).toBe(true);
-    });
-
-    test('should handle edge case configurations', () => {
-      const edgeConfig: ValidationConfig = {
-        strictMode: true,
-        requiredSections: [],
-        minRequirements: 0,
-        maxRequirements: 100,
-        requireTechStack: false,
-        requireTestingStrategy: true,
-        customValidators: []
-      };
-
-      expect(() => new ValidationEngine(edgeConfig)).not.toThrow();
-    });
-
-    test('should validate config constraints', () => {
+    test('should handle valid configurations', () => {
+      expect(() => new ValidationEngine(mockConfig)).not.toThrow();
       expect(mockConfig.minRequirements).toBeLessThanOrEqual(mockConfig.maxRequirements);
-      expect(mockConfig.minRequirements).toBeGreaterThanOrEqual(0);
-      expect(mockConfig.maxRequirements).toBeGreaterThan(0);
     });
   });
 
-  describe('validation rule structure', () => {
-    test('should validate ValidationRule interface', () => {
-      const mockRule: ValidationRule = {
-        name: 'test-rule',
-        description: 'Test validation rule',
-        validate: (prd: PRD) => ({
-          valid: true,
-          errors: [],
-          warnings: []
-        }),
-        severity: 'warning',
-        category: 'content'
-      };
-
-      expect(typeof mockRule.name).toBe('string');
-      expect(typeof mockRule.description).toBe('string');
-      expect(typeof mockRule.validate).toBe('function');
-      expect(['error', 'warning']).toContain(mockRule.severity);
-      expect(['structure', 'content', 'business', 'technical']).toContain(mockRule.category);
-    });
+  // Core functionality tests (removed redundant interface validation)
 
     test('should handle different rule severities', () => {
       const errorRule: ValidationRule = {

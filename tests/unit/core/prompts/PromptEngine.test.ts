@@ -1,6 +1,6 @@
 import { describe, test, expect, beforeEach, jest } from '@jest/globals';
-import { PromptEngine, PromptTaskType } from '../../../src/core/prompts/PromptEngine.js';
-import { ModelType, OutputFormat } from '../../../src/models/index.js';
+import { PromptEngine, PromptTaskType } from '../../../../src/core/prompts/PromptEngine.js';
+import { ModelType, OutputFormat } from '../../../../src/models/index.js';
 
 // Helper function to create valid mock context
 function createMockContext(overrides: any = {}) {

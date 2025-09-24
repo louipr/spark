@@ -1,6 +1,6 @@
 import { describe, test, expect, beforeEach, jest } from '@jest/globals';
-import { LLMInterface } from '../../../src/core/llm/LLMInterface.js';
-import { LLMProvider, LLMConfig, TaskType, ModelType, LLMMessage, LLMResponse } from '../../../src/models/index.js';
+import { LLMInterface } from '../../../../src/core/llm/LLMInterface.js';
+import { LLMProvider, LLMConfig, TaskType, ModelType, LLMMessage, LLMResponse } from '../../../../src/models/index.js';
 import { v4 as uuidv4 } from 'uuid';
 
 // Create a concrete implementation for testing the abstract class

@@ -44,12 +44,16 @@ export class FileStorage {
    * Initialize storage directories
    */
   async initialize(): Promise<void> {
-    if (this.config.createDirectories) {
-      await this.ensureDirectory(this.basePath);
-      await this.ensureDirectory(path.join(this.basePath, 'history'));
-      await this.ensureDirectory(path.join(this.basePath, 'cache'));
-      await this.ensureDirectory(path.join(this.basePath, 'logs'));
-      await this.ensureDirectory(path.join(this.basePath, 'exports'));
+    try {
+      if (this.config.createDirectories) {
+        await this.ensureDirectory(this.basePath);
+        await this.ensureDirectory(path.join(this.basePath, 'history'));
+        await this.ensureDirectory(path.join(this.basePath, 'cache'));
+        await this.ensureDirectory(path.join(this.basePath, 'logs'));
+        await this.ensureDirectory(path.join(this.basePath, 'exports'));
+      }
+    } catch (error) {
+      throw new Error(`Failed to initialize storage directories: ${error instanceof Error ? error.message : 'Unknown error'}`);
     }
   }
 
@@ -59,8 +63,12 @@ export class FileStorage {
   async ensureDirectory(dirPath: string): Promise<void> {
     try {
       await fs.access(dirPath);
-    } catch {
-      await fs.mkdir(dirPath, { recursive: true });
+    } catch (accessError) {
+      try {
+        await fs.mkdir(dirPath, { recursive: true });
+      } catch (mkdirError) {
+        throw new Error(`Failed to create directory '${dirPath}': ${mkdirError instanceof Error ? mkdirError.message : 'Unknown error'}`);
+      }
     }
   }
 
@@ -68,20 +76,28 @@ export class FileStorage {
    * Write data to a file
    */
   async writeFile(filePath: string, data: string | Buffer): Promise<void> {
-    const fullPath = this.getFullPath(filePath);
-    const dir = path.dirname(fullPath);
-    
-    await this.ensureDirectory(dir);
-    await fs.writeFile(fullPath, data, { encoding: this.config.encoding });
+    try {
+      const fullPath = this.getFullPath(filePath);
+      const dir = path.dirname(fullPath);
+      
+      await this.ensureDirectory(dir);
+      await fs.writeFile(fullPath, data, { encoding: this.config.encoding });
+    } catch (error) {
+      throw new Error(`Failed to write file '${filePath}': ${error instanceof Error ? error.message : 'Unknown error'}`);
+    }
   }
 
   /**
    * Read data from a file
    */
   async readFile(filePath: string): Promise<string> {
-    const fullPath = this.getFullPath(filePath);
-    const content = await fs.readFile(fullPath, { encoding: this.config.encoding });
-    return content as string;
+    try {
+      const fullPath = this.getFullPath(filePath);
+      const content = await fs.readFile(fullPath, { encoding: this.config.encoding });
+      return content as string;
+    } catch (error) {
+      throw new Error(`Failed to read file '${filePath}': ${error instanceof Error ? error.message : 'Unknown error'}`);
+    }
   }
 
   /**
@@ -101,23 +117,31 @@ export class FileStorage {
    * Delete a file
    */
   async deleteFile(filePath: string): Promise<void> {
-    const fullPath = this.getFullPath(filePath);
-    await fs.unlink(fullPath);
+    try {
+      const fullPath = this.getFullPath(filePath);
+      await fs.unlink(fullPath);
+    } catch (error) {
+      throw new Error(`Failed to delete file '${filePath}': ${error instanceof Error ? error.message : 'Unknown error'}`);
+    }
   }
 
   /**
    * Get file metadata
    */
   async getMetadata(filePath: string): Promise<StorageMetadata> {
-    const fullPath = this.getFullPath(filePath);
-    const stats = await fs.stat(fullPath);
-    
-    return {
-      size: stats.size,
-      created: stats.birthtime,
-      modified: stats.mtime,
-      path: fullPath
-    };
+    try {
+      const fullPath = this.getFullPath(filePath);
+      const stats = await fs.stat(fullPath);
+      
+      return {
+        size: stats.size,
+        created: stats.birthtime,
+        modified: stats.mtime,
+        path: fullPath
+      };
+    } catch (error) {
+      throw new Error(`Failed to get metadata for file '${filePath}': ${error instanceof Error ? error.message : 'Unknown error'}`);
+    }
   }
 
   /**
@@ -143,51 +167,71 @@ export class FileStorage {
    * Write JSON data to a file
    */
   async writeJSON(filePath: string, data: any): Promise<void> {
-    const jsonString = JSON.stringify(data, null, 2);
-    await this.writeFile(filePath, jsonString);
+    try {
+      const jsonString = JSON.stringify(data, null, 2);
+      await this.writeFile(filePath, jsonString);
+    } catch (error) {
+      throw new Error(`Failed to write JSON to file '${filePath}': ${error instanceof Error ? error.message : 'Unknown error'}`);
+    }
   }
 
   /**
    * Read JSON data from a file
    */
   async readJSON<T = any>(filePath: string): Promise<T> {
-    const jsonString = await this.readFile(filePath);
-    return JSON.parse(jsonString) as T;
+    try {
+      const jsonString = await this.readFile(filePath);
+      return JSON.parse(jsonString) as T;
+    } catch (error) {
+      throw new Error(`Failed to read JSON from file '${filePath}': ${error instanceof Error ? error.message : 'Unknown error'}`);
+    }
   }
 
   /**
    * Append data to a file
    */
   async appendFile(filePath: string, data: string): Promise<void> {
-    const fullPath = this.getFullPath(filePath);
-    const dir = path.dirname(fullPath);
-    
-    await this.ensureDirectory(dir);
-    await fs.appendFile(fullPath, data, { encoding: this.config.encoding });
+    try {
+      const fullPath = this.getFullPath(filePath);
+      const dir = path.dirname(fullPath);
+      
+      await this.ensureDirectory(dir);
+      await fs.appendFile(fullPath, data, { encoding: this.config.encoding });
+    } catch (error) {
+      throw new Error(`Failed to append to file '${filePath}': ${error instanceof Error ? error.message : 'Unknown error'}`);
+    }
   }
 
   /**
    * Copy a file
    */
   async copyFile(sourcePath: string, destPath: string): Promise<void> {
-    const fullSourcePath = this.getFullPath(sourcePath);
-    const fullDestPath = this.getFullPath(destPath);
-    const destDir = path.dirname(fullDestPath);
-    
-    await this.ensureDirectory(destDir);
-    await fs.copyFile(fullSourcePath, fullDestPath);
+    try {
+      const fullSourcePath = this.getFullPath(sourcePath);
+      const fullDestPath = this.getFullPath(destPath);
+      const destDir = path.dirname(fullDestPath);
+      
+      await this.ensureDirectory(destDir);
+      await fs.copyFile(fullSourcePath, fullDestPath);
+    } catch (error) {
+      throw new Error(`Failed to copy file from '${sourcePath}' to '${destPath}': ${error instanceof Error ? error.message : 'Unknown error'}`);
+    }
   }
 
   /**
    * Move a file
    */
   async moveFile(sourcePath: string, destPath: string): Promise<void> {
-    const fullSourcePath = this.getFullPath(sourcePath);
-    const fullDestPath = this.getFullPath(destPath);
-    const destDir = path.dirname(fullDestPath);
-    
-    await this.ensureDirectory(destDir);
-    await fs.rename(fullSourcePath, fullDestPath);
+    try {
+      const fullSourcePath = this.getFullPath(sourcePath);
+      const fullDestPath = this.getFullPath(destPath);
+      const destDir = path.dirname(fullDestPath);
+      
+      await this.ensureDirectory(destDir);
+      await fs.rename(fullSourcePath, fullDestPath);
+    } catch (error) {
+      throw new Error(`Failed to move file from '${sourcePath}' to '${destPath}': ${error instanceof Error ? error.message : 'Unknown error'}`);
+    }
   }
 
   /**

@@ -11,11 +11,11 @@ import {
   TokenUsage,
   ResponseMetadata
 } from '../../models/index.js';
-import { LLMInterface } from './LLMInterface.js';
+import { BaseLLMProvider, ProviderModelMapping, StreamChunk } from './BaseLLMProvider.js';
 
-export class ClaudeProvider extends LLMInterface {
+export class ClaudeProvider extends BaseLLMProvider {
   private client: Anthropic;
-  private readonly modelMapping = {
+  protected readonly modelMapping: ProviderModelMapping = {
     [ModelType.CLAUDE_3_5_SONNET]: 'claude-3-5-sonnet-20241022',
     [ModelType.CLAUDE_3_HAIKU]: 'claude-3-haiku-20240307'
   };
@@ -28,90 +28,11 @@ export class ClaudeProvider extends LLMInterface {
     });
   }
 
-  /**
-   * Generate a response from Claude
-   */
-  async generate(
-    messages: LLMMessage[],
-    taskType: TaskType,
-    options?: Partial<LLMConfig>
-  ): Promise<LLMResponse> {
-    this.validateMessages(messages);
-    
-    const effectiveConfig = { ...this.config, ...options };
-    const contextualMessages = this.addContextToMessages(messages, taskType);
-    const preparedMessages = this.prepareMessages(contextualMessages);
 
-    return this.handleRateLimit(async () => {
-      const startTime = Date.now();
-      
-      const response = await this.client.messages.create({
-        model: this.modelMapping[effectiveConfig.model as keyof typeof this.modelMapping] || this.modelMapping[ModelType.CLAUDE_3_5_SONNET],
-        max_tokens: effectiveConfig.maxTokens,
-        temperature: effectiveConfig.temperature,
-        messages: preparedMessages,
-        top_p: effectiveConfig.topP,
-        stop_sequences: effectiveConfig.stopSequences
-      });
 
-      const processingTime = Date.now() - startTime;
-      const llmResponse = this.parseResponse(response, processingTime);
-      
-      this.logRequest(contextualMessages, taskType, llmResponse);
-      
-      return llmResponse;
-    });
-  }
 
-  /**
-   * Stream a response from Claude
-   */
-  async* stream(
-    messages: LLMMessage[],
-    taskType: TaskType,
-    options?: Partial<LLMConfig>
-  ): AsyncGenerator<string, void, unknown> {
-    this.validateMessages(messages);
-    
-    const effectiveConfig = { ...this.config, ...options };
-    const contextualMessages = this.addContextToMessages(messages, taskType);
-    const preparedMessages = this.prepareMessages(contextualMessages);
 
-    const stream = await this.client.messages.create({
-      model: this.modelMapping[effectiveConfig.model as keyof typeof this.modelMapping] || this.modelMapping[ModelType.CLAUDE_3_5_SONNET],
-      max_tokens: effectiveConfig.maxTokens,
-      temperature: effectiveConfig.temperature,
-      messages: preparedMessages,
-      top_p: effectiveConfig.topP,
-      stop_sequences: effectiveConfig.stopSequences,
-      stream: true
-    });
 
-    for await (const chunk of stream) {
-      if (chunk.type === 'content_block_delta' && chunk.delta.type === 'text_delta') {
-        yield chunk.delta.text;
-      }
-    }
-  }
-
-  /**
-   * Check if Claude API is available
-   */
-  async isAvailable(): Promise<boolean> {
-    try {
-      // Simple ping to check API availability
-      const response = await this.client.messages.create({
-        model: this.modelMapping[ModelType.CLAUDE_3_HAIKU], // Use fastest model for ping
-        max_tokens: 10,
-        messages: [{ role: 'user', content: 'ping' }]
-      });
-      
-      return !!response.content;
-    } catch (error) {
-      console.warn('Claude API unavailable:', error);
-      return false;
-    }
-  }
 
   /**
    * Get Claude capabilities
@@ -265,5 +186,75 @@ export class ClaudeProvider extends LLMInterface {
     }
     
     return nonSystemMessages;
+  }
+
+  /**
+   * Execute the actual API request to Claude
+   */
+  protected async executeRequest(
+    preparedMessages: any[],
+    config: LLMConfig
+  ): Promise<any> {
+    return await this.client.messages.create({
+      model: this.getModelName(config.model),
+      max_tokens: config.maxTokens,
+      temperature: config.temperature,
+      messages: preparedMessages,
+      top_p: config.topP,
+      stop_sequences: config.stopSequences
+    });
+  }
+
+  /**
+   * Execute a streaming API request to Claude
+   */
+  protected async executeStreamRequest(
+    preparedMessages: any[],
+    config: LLMConfig
+  ): Promise<any> {
+    return await this.client.messages.create({
+      model: this.getModelName(config.model),
+      max_tokens: config.maxTokens,
+      temperature: config.temperature,
+      messages: preparedMessages,
+      top_p: config.topP,
+      stop_sequences: config.stopSequences,
+      stream: true
+    });
+  }
+
+  /**
+   * Process streaming chunks from Claude
+   */
+  protected async* processStreamChunk(stream: any): AsyncGenerator<StreamChunk, void, unknown> {
+    for await (const chunk of stream) {
+      if (chunk.type === 'content_block_delta' && chunk.delta.type === 'text_delta') {
+        yield { content: chunk.delta.text };
+      }
+      if (chunk.type === 'message_stop') {
+        yield { finished: true };
+      }
+    }
+  }
+
+  /**
+   * Validate that the ping response indicates successful connection
+   */
+  protected validatePingResponse(response: any): boolean {
+    return !!response.content && response.content.length > 0;
+  }
+
+  /**
+   * Get the fastest/cheapest model for availability testing
+   */
+  protected getFastestModel(): ModelType {
+    return ModelType.CLAUDE_3_HAIKU;
+  }
+
+  /**
+   * Get the default model if no specific model is requested
+   */
+  protected getDefaultModel(): ModelType {
+    return ModelType.CLAUDE_3_5_SONNET;
   }
 }

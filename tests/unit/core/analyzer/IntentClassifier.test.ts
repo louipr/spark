@@ -1,6 +1,6 @@
 import { describe, test, expect, beforeEach } from '@jest/globals';
-import { IntentClassifier } from '../../../src/core/analyzer/IntentClassifier.js';
-import { Intent, AppType, RequestContext, ModelType, OutputFormat } from '../../../src/models/index.js';
+import { IntentClassifier } from '../../../../src/core/analyzer/IntentClassifier.js';
+import { Intent, AppType, RequestContext, ModelType, OutputFormat } from '../../../../src/models/index.js';
 
 describe('IntentClassifier', () => {
   let classifier: IntentClassifier;

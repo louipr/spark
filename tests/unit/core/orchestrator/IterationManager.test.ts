@@ -4,11 +4,11 @@ import {
   IterationConfig, 
   IterationResult, 
   IterationMetrics 
-} from '../../../src/core/orchestrator/IterationManager.js';
-import { StateManager } from '../../../src/core/orchestrator/StateManager.js';
-import { RequestAnalyzer } from '../../../src/core/analyzer/index.js';
-import { PRDGenerator } from '../../../src/core/generator/index.js';
-import { LLMRouter } from '../../../src/core/llm/index.js';
+} from '../../../../src/core/orchestrator/IterationManager.js';
+import { StateManager } from '../../../../src/core/orchestrator/StateManager.js';
+import { RequestAnalyzer } from '../../../../src/core/analyzer/index.js';
+import { PRDGenerator } from '../../../../src/core/generator/index.js';
+import { LLMRouter } from '../../../../src/core/llm/index.js';
 import { 
   UserRequest, 
   PRD, 
@@ -18,13 +18,13 @@ import {
   Priority,
   Intent,
   ComplexityLevel 
-} from '../../../src/models/index.js';
+} from '../../../../src/models/index.js';
 
 // Mock the dependencies
-jest.mock('../../../src/core/orchestrator/StateManager.js');
-jest.mock('../../../src/core/analyzer/index.js');
-jest.mock('../../../src/core/generator/index.js');
-jest.mock('../../../src/core/llm/index.js');
+jest.mock('../../../../src/core/orchestrator/StateManager.js');
+jest.mock('../../../../src/core/analyzer/index.js');
+jest.mock('../../../../src/core/generator/index.js');
+jest.mock('../../../../src/core/llm/index.js');
 
 describe('IterationManager', () => {
   let iterationManager: IterationManager;

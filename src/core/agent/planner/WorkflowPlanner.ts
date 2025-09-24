@@ -21,6 +21,7 @@ export interface ExecutionContext {
   environment: Map<string, string>;
   state: Map<string, any>;
   history: ExecutionHistory[];
+  timeout?: number; // Optional timeout in milliseconds
 }
 
 export interface ExecutionHistory {

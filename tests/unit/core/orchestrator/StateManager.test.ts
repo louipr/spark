@@ -1,9 +1,9 @@
 import { describe, test, expect, beforeEach, jest } from '@jest/globals';
-import { StateManager, SessionState, StateSnapshot } from '../../../src/core/orchestrator/StateManager.js';
+import { StateManager, SessionState, StateSnapshot } from '../../../../src/core/orchestrator/StateManager.js';
 import { 
   UserRequest, 
   ProcessingStage
-} from '../../../src/models/index.js';
+} from '../../../../src/models/index.js';
 
 describe('StateManager', () => {
   let stateManager: StateManager;

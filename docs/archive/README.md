@@ -40,7 +40,6 @@ All valuable content from these archived documents has been integrated into the 
 
 These documents are kept for historical reference only. For current documentation, see:
 - [Main README](../../README.md)
-- [Documentation](../)
-- [Current Documentation](../README.md)
+- [Documentation](../../README.md#-documentation)
 
 Do not reference archived content for current development or usage.

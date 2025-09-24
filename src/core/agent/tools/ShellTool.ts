@@ -8,10 +8,24 @@ export class ShellTool implements AgentTool {
   name = 'shell';
   description = 'Execute shell commands in the system';
   private execAsync = promisify(exec);
+  
+  // Security: Allowlist of safe commands
+  private allowedCommands = [
+    'ls', 'pwd', 'echo', 'cat', 'head', 'tail', 'grep', 'find', 'wc',
+    'mkdir', 'touch', 'cp', 'mv', 'rm', 'chmod', 'chown',
+    'git', 'npm', 'node', 'python', 'pip', 'which', 'whereis',
+    'cd', 'pushd', 'popd', 'du', 'df', 'ps', 'top', 'kill'
+  ];
 
   async execute(params: { command: string; cwd?: string; timeout?: number }, context: ExecutionContext): Promise<any> {
     if (!this.validate(params)) {
       throw new Error('Invalid parameters for Shell tool');
+    }
+
+    // Security: Validate command is allowed
+    const cmd = params.command.trim().split(' ')[0];
+    if (!this.allowedCommands.includes(cmd)) {
+      throw new Error(`Command '${cmd}' not allowed for security reasons. Allowed: ${this.allowedCommands.join(', ')}`);
     }
 
     try {

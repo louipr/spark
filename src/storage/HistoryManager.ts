@@ -51,15 +51,19 @@ export class HistoryManager {
    * Initialize history storage
    */
   async initialize(): Promise<void> {
-    await this.storage.initialize();
-    
-    // Create index file if it doesn't exist
-    if (!(await this.storage.exists(this.indexFile))) {
-      await this.storage.writeJSON(this.indexFile, {
-        totalConversations: 0,
-        lastUpdated: new Date().toISOString(),
-        sessions: {}
-      });
+    try {
+      await this.storage.initialize();
+      
+      // Create index file if it doesn't exist
+      if (!(await this.storage.exists(this.indexFile))) {
+        await this.storage.writeJSON(this.indexFile, {
+          totalConversations: 0,
+          lastUpdated: new Date().toISOString(),
+          sessions: {}
+        });
+      }
+    } catch (error) {
+      throw new Error(`Failed to initialize history storage: ${error instanceof Error ? error.message : 'Unknown error'}`);
     }
   }
 
@@ -67,20 +71,24 @@ export class HistoryManager {
    * Add a new conversation to history
    */
   async addConversation(conversation: Omit<ConversationHistory, 'id'>): Promise<string> {
-    const id = uuidv4();
-    const fullConversation: ConversationHistory = {
-      id,
-      ...conversation
-    };
+    try {
+      const id = uuidv4();
+      const fullConversation: ConversationHistory = {
+        id,
+        ...conversation
+      };
 
-    // Append to history file using JSON Lines format
-    const jsonLine = JSON.stringify(fullConversation) + '\n';
-    await this.storage.appendFile(this.historyFile, jsonLine);
+      // Append to history file using JSON Lines format
+      const jsonLine = JSON.stringify(fullConversation) + '\n';
+      await this.storage.appendFile(this.historyFile, jsonLine);
 
-    // Update index
-    await this.updateIndex(fullConversation);
+      // Update index
+      await this.updateIndex(fullConversation);
 
-    return id;
+      return id;
+    } catch (error) {
+      throw new Error(`Failed to add conversation to history: ${error instanceof Error ? error.message : 'Unknown error'}`);
+    }
   }
 
   /**
@@ -289,8 +297,7 @@ export class HistoryManager {
 
       await this.initialize();
     } catch (error) {
-      console.error('Error clearing history:', error);
-      throw error;
+      throw new Error(`Failed to clear history: ${error instanceof Error ? error.message : 'Unknown error'}`);
     }
   }
 
@@ -298,20 +305,24 @@ export class HistoryManager {
    * Export history to different formats
    */
   async exportHistory(format: 'json' | 'csv' | 'markdown' = 'json'): Promise<string> {
-    const conversations = await this.searchConversations({ limit: 1000 });
-    
-    switch (format) {
-      case 'json':
-        return JSON.stringify(conversations, null, 2);
+    try {
+      const conversations = await this.searchConversations({ limit: 1000 });
       
-      case 'csv':
-        return this.convertToCSV(conversations);
-      
-      case 'markdown':
-        return this.convertToMarkdown(conversations);
-      
-      default:
-        throw new Error(`Unsupported export format: ${format}`);
+      switch (format) {
+        case 'json':
+          return JSON.stringify(conversations, null, 2);
+        
+        case 'csv':
+          return this.convertToCSV(conversations);
+        
+        case 'markdown':
+          return this.convertToMarkdown(conversations);
+        
+        default:
+          throw new Error(`Unsupported export format: ${format}`);
+      }
+    } catch (error) {
+      throw new Error(`Failed to export history in ${format} format: ${error instanceof Error ? error.message : 'Unknown error'}`);
     }
   }
 

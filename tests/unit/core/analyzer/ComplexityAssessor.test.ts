@@ -1,8 +1,8 @@
 // ComplexityAssessor Unit Tests
 
 import { describe, test, expect, beforeEach } from '@jest/globals';
-import { ComplexityAssessor } from '../../../src/core/analyzer/ComplexityAssessor.js';
-import { ComplexityLevel, AppType, FeatureType, Priority } from '../../../src/models/index.js';
+import { ComplexityAssessor } from '../../../../src/core/analyzer/ComplexityAssessor.js';
+import { ComplexityLevel, AppType, FeatureType, Priority } from '../../../../src/models/index.js';
 
 describe('ComplexityAssessor', () => {
   let assessor: ComplexityAssessor;

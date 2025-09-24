@@ -113,6 +113,7 @@ npm start agent "Create a web scraper with Python and BeautifulSoup"
 - **[Test Plan](./docs/TESTING.md)** - Testing strategy and standards
 - **[Examples](./examples/)** - Practical use cases and workflows
 - **[Changelog](./CHANGELOG.md)** - Version history and improvements
+- **[Archive](./docs/archive/)** - Historical development documents
 
 ## 🤝 Contributing
 

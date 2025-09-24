@@ -1,5 +1,5 @@
 import { describe, test, expect, beforeEach, jest } from '@jest/globals';
-import { PRDGenerator } from '../../../src/core/generator/PRDGenerator.js';
+import { PRDGenerator } from '../../../../src/core/generator/PRDGenerator.js';
 import { 
   UserRequest, 
   AnalysisResult, 
@@ -10,7 +10,7 @@ import {
   Intent, 
   FeatureType, 
   Priority 
-} from '../../../src/models/index.js';
+} from '../../../../src/models/index.js';
 
 // Helper function to create mock user request
 function createMockUserRequest(overrides: any = {}): UserRequest {

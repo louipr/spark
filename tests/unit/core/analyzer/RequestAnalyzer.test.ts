@@ -1,8 +1,8 @@
 // RequestAnalyzer Basic Test - No complex imports
 
 import { describe, test, expect, beforeEach } from '@jest/globals';
-import { RequestAnalyzer } from '../../../src/core/analyzer/RequestAnalyzer.js';
-import { ModelType, OutputFormat } from '../../../src/models/index.js';
+import { RequestAnalyzer } from '../../../../src/core/analyzer/RequestAnalyzer.js';
+import { ModelType, OutputFormat } from '../../../../src/models/index.js';
 
 describe('RequestAnalyzer Basic', () => {
   let analyzer: RequestAnalyzer;

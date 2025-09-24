@@ -1,6 +1,6 @@
 import { describe, test, expect, beforeEach } from '@jest/globals';
-import { ResponseParser } from '../../../src/core/llm/ResponseParser.js';
-import { TaskType, ModelType, Priority } from '../../../src/models/index.js';
+import { ResponseParser } from '../../../../src/core/llm/ResponseParser.js';
+import { TaskType, ModelType, Priority } from '../../../../src/models/index.js';
 
 describe('ResponseParser', () => {
   let parser: ResponseParser;
